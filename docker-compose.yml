@@ -1,0 +1,88 @@
+version: '3.3'
+
+services:
+  web:
+    build: .
+    command: >
+      sh -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000 --timeout 300"
+    volumes:
+      - .:/usr/src/app
+      - static_volume:/usr/src/app/static/
+      - media_volume:/usr/src/app/media/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - migration
+    container_name: web
+    networks:
+      - backend
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    expose:
+      - "8000"
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: hello
+      POSTGRES_PASSWORD: 1
+      POSTGRES_DB: readit_db
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+  migration:
+    build: .
+    restart: on-failure
+    command: >
+      sh -c "python3 manage.py makemigrations &&
+             python3 manage.py migrate"
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - db
+    networks:
+      - backend
+  celery:
+    build: .
+    command: celery -A config worker -l DEBUG
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - web
+      - redis
+    networks:
+      - backend
+  redis:
+    image: redis
+    ports: 
+      - "6380:6379"
+    networks:
+      - backend
+  nginx:
+    image: nginx
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/usr/src/app/static/
+      - media_volume:/usr/src/app/media/
+    depends_on:
+      - web
+    networks:
+      - backend
+    
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+networks:
+  backend:
