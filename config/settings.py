@@ -3,6 +3,8 @@ from pathlib import Path
 from decouple import config
 import os
 
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,6 +23,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS').split()
 # Application definitio
 MY_APPS = [
     'apps.account',
+    'apps.hashtag',
 ]
 DJANGO_APPS = [
     'django.contrib.admin',

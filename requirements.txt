@@ -8,5 +8,5 @@ celery
 redis
 djangorestframework-simplejwt
 gunicorn
+decouple
 django-filter
-

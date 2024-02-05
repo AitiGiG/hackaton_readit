@@ -3,7 +3,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
-# Create your models here.
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -61,4 +61,5 @@ class CustomUser(AbstractUser):
         self.username = new_username
         self.last_username_change = timezone.now()
         self.save()
+
 

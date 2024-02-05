@@ -1,3 +1,4 @@
+
 from http import HTTPStatus
 
 from rest_framework.views import APIView
@@ -130,3 +131,4 @@ class UsernameUpdateView(generics.UpdateAPIView):
 
         user.update_username(new_username)
         return Response({'detail': 'Username updated successfully.'})
+
