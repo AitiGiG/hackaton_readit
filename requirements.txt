@@ -8,3 +8,5 @@ celery
 redis
 djangorestframework-simplejwt
 gunicorn
+django-filter
+
