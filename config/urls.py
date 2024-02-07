@@ -20,6 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger')),
     path('account/', include('apps.account.urls')), 
+    path('api/', include('apps.posts.urls', namespace='apps.posts')),
 ]
 
 
