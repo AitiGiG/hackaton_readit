@@ -13,7 +13,7 @@ from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import CustomUser 
 from rest_framework import generics
-
+from django.contrib.auth.password_validation import validate_password
 User = get_user_model()
 
 class RegistrationView(APIView):
@@ -44,7 +44,6 @@ class ActivationView(APIView):
         user.activation_code = ''
         user.save()
         try:
-            send_confirmation_email(user.email, user.activation_code)
             return Response({
                 'message': 'Пользователь активирован'}, status=HTTPStatus.OK
             )
@@ -67,28 +66,40 @@ class LogoutView(APIView):
 
 
 class CustomResetPasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
-        email = request.data.get('email')
-        user = User.objects.get(email=email)
-        user_id = user.id
+        email = request.user.email
+        user = CustomUser.objects.filter(email=email).first()
         if not user:
-            return Response({'ValidationError': 'Нет такого пользователя'}, status=HTTPStatus.BAD_REQUEST)
+            return Response({'ValidationError': 'Нет такого пользователя'}, 400)
         
+        user_id = user.id
         send_password_reset_task.delay(email=email, user_id=user_id)
-        return Response('Вам на почту отправили сообщение', 200)
+        return Response('Вам на почту отправили сообщение', status=200)
     
 
 class CustomPasswordConfirmView(APIView):
     def post(self, request, *args, **kwargs):
         new_password = request.data.get('new_password')
         password_confirm = request.data.get('password_confirm')
-        user_id = self.kwargs.get('uidb64')
-        user = User.objects.get(id=user_id)
+        user_id = kwargs.get('uidb64') 
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response('Пользователь не найден', status=404)
+
+        if not new_password or not password_confirm:
+            return Response('Пожалуйста, укажите новый пароль и подтверждение пароля', status=400)
+
         if new_password != password_confirm:
-            return Response('Пароли не совпадают', 404)
+            return Response('Пароли не совпадают', status=400)
+        try:
+            validate_password(new_password, user=user)
+        except Exception as e:
+            return Response(str(e), status=400)
         user.set_password(new_password)
         user.save()
-        return Response('Ваш пароль изменен!', 201)
+        return Response('Ваш пароль изменен!', status=201)
         
 
 class VipView(APIView):
@@ -132,3 +143,23 @@ class UsernameUpdateView(generics.UpdateAPIView):
         user.update_username(new_username)
         return Response({'detail': 'Username updated successfully.'})
 
+class DeleteUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response('Вы удалили аккаунт', status=HTTPStatus.OK)
+    
+
+class ChangeClosedView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request):
+        user = request.user
+        if user.is_closed:
+            user.is_closed = False
+            user.save()
+            return Response('Вы открыли доступ к аккаунту', status=HTTPStatus.OK)
+        else:
+            user.is_closed = True
+            user.save()
+            return Response('Вы закрыли доступ к аккаунту', status=HTTPStatus.OK)

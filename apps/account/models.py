@@ -20,6 +20,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password, **kwargs):
         kwargs.setdefault('is_staff', False)
         kwargs.setdefault('is_superuser', False)
+        kwargs.setdefault('is_closed', False)
         return self._create_user(email, password, **kwargs)
 
     def create_superuser(self, email, password, **kwargs):
@@ -27,7 +28,7 @@ class UserManager(BaseUserManager):
         kwargs.setdefault('is_superuser', True)
         kwargs.setdefault('is_active', True)
         return self._create_user(email, password, **kwargs)
-
+    
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=100)
@@ -38,6 +39,7 @@ class CustomUser(AbstractUser):
     avatar = models.ImageField(upload_to='users_images', blank=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+    is_closed = models.BooleanField(default=False)
     objects = UserManager()
     last_username_change = models.DateTimeField(null=True, blank=True)
     USERNAME_FIELD = 'email'
