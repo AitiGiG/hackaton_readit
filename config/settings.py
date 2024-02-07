@@ -23,7 +23,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS').split()
 # Application definitio
 MY_APPS = [
     'apps.account',
-    'apps.hashtag',
+    'apps.posts'
+    
 ]
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -159,7 +160,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=100000),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,

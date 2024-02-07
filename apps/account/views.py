@@ -88,7 +88,7 @@ class CustomPasswordConfirmView(APIView):
             return Response('Пароли не совпадают', 404)
         user.set_password(new_password)
         user.save()
-        return Response('Ваш пароль изменен!', 201)
+        return Response('', 201)
         
 
 class VipView(APIView):
