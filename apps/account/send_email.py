@@ -1,54 +1,51 @@
 from django.core.mail import send_mail
 from django.utils.html import format_html
+from django.core.mail import EmailMultiAlternatives
+from decouple import config
+
+URL = config('URL')
 
 def send_confirmation_email(email, code):
-    activation_url = f'http://localhost:8000/account/activate/?u={code}'
-    message = format_html(
+    activation_url = f'{URL}account/activate/?u={code}'
+    html_message = format_html(
         'Здравствуйте, активируйте ваш аккаунт'
+        '<br>'
         'Чтобы активировать аккаунт, перейдите по ссылке'
         '<br>'
         '<a href= "{}">{}</a>'
         '<br>'
-        'Не передовайте код никому',
+        'Не передавайте код никому',
         activation_url, activation_url
     )
 
-    send_mail(
+    msg = EmailMultiAlternatives(
         'Здравствуйте',
-        message,
+        'Активируйте ваш аккаунт',
         'test@gmail.com',
-        [email],
-        fail_silently=False
+        [email]
     )
-
-def send_spam():
-        print('asdfasdfasdfasdfadsf')
-        send_mail(
-        'Здравствуйте',
-        'beat',
-        'test@gmail.com',
-        ['ertaiesen05@gmail.com'],
-        fail_silently=False
-        )
-
+    msg.attach_alternative(html_message, "text/html")
+    msg.send()
+   
 
 def send_password_reset_email(email, user_id):
-    password_reset_url = f'http://localhost:8000/account/password_confirm/{user_id}'
+    password_reset_url = f'{URL}account/password_confirm/{user_id}'
     message = format_html(
-        'Здравствуйте, чтобы восстановить пароль вам нужно перети по ссылке'
+        'Здравствуйте, чтобы восстановить пароль, перейдите по ссылке:'
         '<br>'
-        '<a href= "{}">{}<\a>'
-        '<\br>',
-        password_reset_url, password_reset_url
+        '<a href="{0}">{0}</a>'
+        '<br>'
+        'Не передавайте данную ссылку никому.',
+        password_reset_url
     )
 
-
     send_mail(
-        'Здравствуйте',
-        message,
+        'Восстановление пароля',
+        '',
         'test@gmail.com',
         [email],
-        fail_silently=False
+        fail_silently=False,
+        html_message=message
     )
 def is_vip_email(email, username):
     message = format_html(
