@@ -17,6 +17,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS").split()
 
 MY_APPS = [
     'apps.account',
+    'apps.posts'
 ]
 DJANGO_APPS = [
     'django.contrib.admin',
