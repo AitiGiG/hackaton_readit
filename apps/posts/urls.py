@@ -1,4 +1,7 @@
 from django.urls import path
+from . import views
+from django.views.decorators.cache import cache_page
+from apps.posts import views 
 from .views import (
     HashtagListView,
     HashtagDetailView,
@@ -27,4 +30,6 @@ urlpatterns = [
     path('favorites/<int:pk>/', FavoriteDestroyView.as_view(), name='favorite-destroy'),
     path('subscriptions/', SubscriptionListView.as_view(), name='subscription-list'),
     path('subscriptions/<int:pk>/', SubscriptionDestroyView.as_view(), name='subscription-destroy'),
+    path('login_view/', LikeCreateDestroyView.as_view(), name='login_view'),
+    path('cashe_view/', cache_page(60 * 15)(PostListView.as_view()), name='cache_view'),
 ]

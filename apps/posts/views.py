@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import authenticate, login
 from django.shortcuts import get_object_or_404
 from .models import Hashtag, Post, Comment, Like, Favorite, Subscription
 from .serializers import (
@@ -12,6 +13,12 @@ from .serializers import (
     SubscriptionSerializer
 )
 from .permissions import IsOwnerOrReadOnly
+from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+import logging  
+
+logger = logging.getLogger('post')  
 
 class HashtagListView(generics.ListCreateAPIView):
     queryset = Hashtag.objects.all()
@@ -24,17 +31,24 @@ class HashtagDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class PostListView(generics.ListCreateAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.select_related('author').all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
+        logger.info('New post created by user {}'.format(self.request.user))  # Логирование создания нового поста
+    @method_decorator(cache_page(60 * 15))
+    def list(self, request, *args, **kwargs):
+        logger.debug("Вызван метод list для PostListView")
+        return super(PostListView, self).list(request, *args, **kwargs)
+
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsOwnerOrReadOnly]
+
 class CommentCreateView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -42,8 +56,9 @@ class CommentCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         post_id = self.request.data.get('post')
-        post = get_object_or_404(Post, pk=post_id)
+        post = get_object_or_404(Post.objects.prefetch_related('comments'), pk=post_id)
         serializer.save(commenter=self.request.user, post=post)
+        logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  # Логирование создания нового комментария
 
 class CommentDestroyView(generics.DestroyAPIView):
     queryset = Comment.objects.all()
@@ -61,6 +76,7 @@ class LikeCreateDestroyView(generics.CreateAPIView, generics.DestroyAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        logger.info('User {} liked a post'.format(self.request.user))  # Логирование нажатия на кнопку "Лайк"
 
 class FavoriteCreateView(generics.CreateAPIView):
     queryset = Favorite.objects.all()
@@ -71,6 +87,7 @@ class FavoriteCreateView(generics.CreateAPIView):
         post_id = self.request.data.get('post')
         post = get_object_or_404(Post, pk=post_id)
         serializer.save(user=self.request.user, post=post)
+        logger.info('User {} added post {} to favorites'.format(self.request.user, post))  # Логирование добавления поста в избранное
 
 class FavoriteDestroyView(generics.DestroyAPIView):
     queryset = Favorite.objects.all()
@@ -88,6 +105,7 @@ class SubscriptionListView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(subscriber=self.request.user)
+        logger.info('User {} subscribed to a new user'.format(self.request.user))  # Логирование подписки на нового пользователя
 
 class SubscriptionDestroyView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
@@ -96,11 +114,20 @@ class SubscriptionDestroyView(generics.DestroyAPIView):
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
-
             return Subscription.objects.none()
-
         if isinstance(self.request.user, AnonymousUser):
-
             return Subscription.objects.none()
-
         return Subscription.objects.filter(subscriber=self.request.user)
+
+class CustomLoginView(views.APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            logger.info('User {} logged in successfully'.format(username))  # Логирование успешного входа
+            return Response({'success': True, 'message': 'Login successful'})
+        else:
+            logger.error('Invalid request method for login')  # Логирование недопустимого метода запроса
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
