@@ -10,6 +10,12 @@ from rest_framework_swagger.views import get_swagger_view
 from apps.posts.views import PostListView
 
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="READIT",
+
+        description="online backend api's for readit",
+
 
 # schema_view = get_schema_view(
 #     openapi.Info(
@@ -38,13 +44,13 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('posts/', PostListView.as_view(), name='posts'),
-    path('swagger/', schema_view.with_ui('swagger')),
-    path('account/', include('apps.account.urls')), 
-    path('api/', include('apps.posts.urls')),
-    path('login/', LoginView.as_view(), name='login'),
     path('cache/', PostListView.as_view(), name='cache'),
+    path('api/admin/', admin.site.urls),
+    path('api/swagger/', schema_view.with_ui('swagger')),
+    path('api/account/', include('apps.account.urls')), 
+    path('api/', include('apps.posts.urls', namespace='apps.posts')),
+    path('api/', include('apps.product.urls')),
+    path('api/', include('apps.category.urls')),
 ]
 
 
