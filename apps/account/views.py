@@ -1,9 +1,8 @@
 
 from http import HTTPStatus
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, LogOutSerialzer, UserProfileSerializer
+from .serializers import RegisterSerializer, LogOutSerializer, UserProfileSerializer, UserGetProductSerializer, UserVipGetSerializer
 from django.contrib.auth import get_user_model
 from .send_email import send_confirmation_email
 from django.shortcuts import get_object_or_404
@@ -12,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import CustomUser 
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from django.contrib.auth.password_validation import validate_password
 User = get_user_model()
 
@@ -25,7 +24,7 @@ class RegistrationView(APIView):
         user = serializer.save()
         if user:
             try:
-                send_confirm_email_task.delay(user.email, user.activation_code)
+                send_confirm_email_task.delay(user.email, user.activation_code[0:7])
             except:
                 return Response(
                     {
@@ -37,32 +36,46 @@ class RegistrationView(APIView):
     
 
 class ActivationView(APIView):
-    def get(self, request):
-        code = request.query_params.get('u')
-        user = get_object_or_404(User, activation_code=code)
-        user.is_active = True
-        user.activation_code = ''
-        user.save()
-        try:
-            return Response({
-                'message': 'Пользователь активирован'}, status=HTTPStatus.OK
-            )
-        except Exception as e:
+    def post(self, request):
+        code = request.data.get('activation_code')
+        user = User.objects.filter(activation_code__startswith=code[:6]).first()
+        if user:
+            user.is_active = True
+            user.activation_code = ''
+            user.save()
+            try:
+                return Response({
+                    'message': 'Пользователь активирован',
+                    'email': user.email  # Добавим email пользователя в ответ
+                }, status=HTTPStatus.OK)
+            except Exception as e:
+                return Response(
+                    {'error': f'Ошибка при отправке подтверждения по электронной почте: {e}'},
+                    status=HTTPStatus.INTERNAL_SERVER_ERROR
+                )
+        else:
             return Response(
-                {'error': f'Ошибка при отправке подтверждения по электронной почте: {e}'},
-                            status=HTTPStatus.INTERNAL_SERVER_ERROR
+                {'error': 'Пользователь с указанным кодом активации не найден.'},
+                status=HTTPStatus.NOT_FOUND
             )
         
 
 class LogoutView(APIView):
-    serializer_class = LogOutSerialzer
+    serializer_class = LogOutSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         refresh_token = request.data.get('refresh')
-        token = RefreshToken(refresh_token)
-        token.blacklist()
-        return Response('Успешно разлогинилсь', 200)
+
+        # Проверяем, был ли предоставлен refresh token
+        if refresh_token:
+            # Если предоставлен, то добавляем его в черный список
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response('Успешно разлогинились', status=200)
+        else:
+            # Если refresh token не был предоставлен, возвращаем ошибку
+            return Response('Отсутствует refresh token', status=400)
 
 
 class CustomResetPasswordView(APIView):
@@ -163,3 +176,17 @@ class ChangeClosedView(APIView):
             user.is_closed = True
             user.save()
             return Response('Вы закрыли доступ к аккаунту', status=HTTPStatus.OK)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    permission_classes= [permissions.IsAuthenticated]
+    serializer_class = UserGetProductSerializer
+
+        
+class UserVipGetViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    permission_classes= [permissions.IsAuthenticated]
+    serializer_class = UserVipGetSerializer
+
+
+   

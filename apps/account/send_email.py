@@ -6,16 +6,16 @@ from decouple import config
 URL = config('URL')
 
 def send_confirmation_email(email, code):
-    activation_url = f'{URL}account/activate/?u={code}'
+    activation_url = code
     html_message = format_html(
         'Здравствуйте, активируйте ваш аккаунт'
         '<br>'
-        'Чтобы активировать аккаунт, перейдите по ссылке'
+        'Чтобы активировать аккаунт, введите этот код в приложении: '
         '<br>'
-        '<a href= "{}">{}</a>'
+        '<h3>{}</h3>'
         '<br>'
         'Не передавайте код никому',
-        activation_url, activation_url
+        activation_url
     )
 
     msg = EmailMultiAlternatives(
