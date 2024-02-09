@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth import get_user_model
+from apps.product.models import Product, Busket, Favorite
+from apps.product.serializers import ProductSerializer, BusketSerializer, FavoriteSerializer
+
 
 User = get_user_model()
 
@@ -24,7 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
-class LogOutSerialzer(serializers.Serializer):
+class LogOutSerializer(serializers.Serializer):
     refresh = serializers.CharField(required=True, write_only=True)
 
 
@@ -34,3 +37,36 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'biography', 'avatar', 'link', 'is_closed', 'is_staff']
+
+class UserGetProductSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'busket', 'favorite']
+    
+    busket = serializers.SerializerMethodField(method_name='get_busket')
+    favorite = serializers.SerializerMethodField(method_name='get_favorite')
+
+    def get_busket(self , instance):
+        busket = Busket.objects.filter(owner=instance)
+        serializer = BusketSerializer(busket, many=True)
+        return serializer.data
+    def get_favorite(self, instance):
+        favorite = Favorite.objects.filter(owner=instance)
+        serializer = FavoriteSerializer(favorite, many=True)
+        return serializer.data
+    
+class UserVipGetSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'is_staff', 'product']
+    
+    product= serializers.SerializerMethodField(method_name='get_product')
+
+    def get_product(self, instance):
+        product = Product.objects.filter(owner=instance)
+        serializer = ProductSerializer(product, many=True)
+        return serializer.data

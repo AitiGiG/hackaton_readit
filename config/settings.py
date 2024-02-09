@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-t0n2&ihnzv&&d@k6@95h4r(f=1+ff7*bye(^4k5bu39uxc_y80'
 
-DEBUG = True
+DEBUG = config("DEBUG", cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS").split()
 
@@ -17,7 +17,9 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS").split()
 
 MY_APPS = [
     'apps.account',
-    'apps.posts'
+    'apps.posts',
+    'apps.product',
+    'apps.category',
 ]
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -137,7 +139,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
-REDIS_HOST = 'redis'
+REDIS_HOST = config('REDIS_HOST')
 REDIS_PORT = '6379'
 
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT
@@ -163,3 +165,5 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_METHODS = [
     '*',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True

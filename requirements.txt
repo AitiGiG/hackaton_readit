@@ -10,3 +10,4 @@ djangorestframework-simplejwt
 gunicorn
 django-filter
 django-cors-headers
+django-autoslug

@@ -7,9 +7,9 @@ from django.conf import settings
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="SHOP API",
+        title="READIT",
 
-        description="online backend api's for shop",
+        description="online backend api's for readit",
 
         default_version="v1",
     ),
@@ -17,10 +17,12 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('swagger/', schema_view.with_ui('swagger')),
-    path('account/', include('apps.account.urls')), 
+    path('api/admin/', admin.site.urls),
+    path('api/swagger/', schema_view.with_ui('swagger')),
+    path('api/account/', include('apps.account.urls')), 
     path('api/', include('apps.posts.urls', namespace='apps.posts')),
+    path('api/', include('apps.product.urls')),
+    path('api/', include('apps.category.urls')),
 ]
 
 
