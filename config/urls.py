@@ -6,34 +6,13 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.views import LoginView
 from apps.posts.views import PostListView
-from rest_framework_swagger.views import get_swagger_view
+
 from apps.posts.views import PostListView
 
 
 schema_view = get_schema_view(
-    openapi.Info(
-        title="READIT",
-
-        description="online backend api's for readit",
-
-
-# schema_view = get_schema_view(
-#     openapi.Info(
-#         title="SHOP API",
-
-#         description="online backend api's for shop",
-
-#         default_version="v1",
-#     ),
-#     public=True
-# )
-
-# app_name = 'posts'
-schema_view = get_swagger_view(title='API')
-
-schema_view = get_schema_view(
    openapi.Info(
-      title="SHOP API",
+      title="READIT",
       default_version='v1',
       description="online backend api's for shop",
       terms_of_service="https://www.google.com/policies/terms/",
