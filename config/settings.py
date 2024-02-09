@@ -2,8 +2,12 @@
 from pathlib import Path
 from decouple import config
 import os
+import logging.config
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
 
 
 SECRET_KEY = 'django-insecure-t0n2&ihnzv&&d@k6@95h4r(f=1+ff7*bye(^4k5bu39uxc_y80'
@@ -87,6 +91,7 @@ AUTH_USER_MODEL = 'account.CustomUser'
 
 
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -139,7 +144,10 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
+
+
 REDIS_HOST = config('REDIS_HOST')
+
 REDIS_PORT = '6379'
 
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT
@@ -166,4 +174,47 @@ CORS_ALLOW_METHODS = [
     '*',
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'config_cache'),  
+    }
+}
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'main_formatter': {
+            'format': '{levelname} - {asctime} - {module} - {message}',  # Исправлено: format вместо '()'
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'main_formatter',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'info.log',
+            'formatter': 'main_formatter',
+        },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+logging.config.dictConfig(LOGGING)
+
 CORS_ALLOW_ALL_ORIGINS = True
+
