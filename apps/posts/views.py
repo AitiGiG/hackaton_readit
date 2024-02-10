@@ -16,6 +16,9 @@ from .permissions import IsOwnerOrReadOnly
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from googletrans import Translator, LANGUAGES
+from django.http import JsonResponse
+from .models import Comment
 import logging  
 
 logger = logging.getLogger('post')  
@@ -42,12 +45,30 @@ class PostListView(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         logger.debug("Вызван метод list для PostListView")
         return super(PostListView, self).list(request, *args, **kwargs)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('user_id')
+        if user_id is not None:
+            queryset = queryset.filter(author__id=user_id)
+        return queryset
 
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsOwnerOrReadOnly]
+
+class CommentListView(generics.ListCreateAPIView):
+    queryset = Comment.objects.select_related('post').all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        post_id = self.request.query_params.get('post_id')
+        if post_id is not None:
+            queryset = queryset.filter(post__id=post_id)
+        return queryset
 
 class CommentCreateView(generics.CreateAPIView):
     queryset = Comment.objects.all()
@@ -77,7 +98,12 @@ class LikeCreateDestroyView(generics.CreateAPIView, generics.DestroyAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         logger.info('User {} liked a post'.format(self.request.user))  # Логирование нажатия на кнопку "Лайк"
+class FavoriteListView(generics.ListAPIView):
+    serializer_class = FavoriteSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
 class FavoriteCreateView(generics.CreateAPIView):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
@@ -106,7 +132,14 @@ class SubscriptionListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(subscriber=self.request.user)
         logger.info('User {} subscribed to a new user'.format(self.request.user))  # Логирование подписки на нового пользователя
+class SubscriberListView(generics.ListAPIView):
+    serializer_class = SubscriptionSerializer  
+    permission_classes = [permissions.IsAuthenticated]  
 
+    def get_queryset(self):
+
+        user_id = self.kwargs['user_id']
+        return Subscription.objects.filter(subscribed_to__id=user_id)
 class SubscriptionDestroyView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
@@ -131,3 +164,19 @@ class CustomLoginView(views.APIView):
         else:
             logger.error('Invalid request method for login')  # Логирование недопустимого метода запроса
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+    
+def translate_comment(request, comment_id):
+    if request.method == 'GET':
+
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found'}, status=404)
+
+        translator = Translator()
+
+        translated = translator.translate(comment.text, src='en', dest='ru')
+
+        return JsonResponse({'original': comment.text, 'translated': translated.text})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)

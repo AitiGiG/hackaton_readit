@@ -1,5 +1,4 @@
 from django.urls import path
-from . import views
 from django.views.decorators.cache import cache_page
 from apps.posts import views 
 from .views import (
@@ -14,6 +13,10 @@ from .views import (
     FavoriteDestroyView, 
     SubscriptionListView,
     SubscriptionDestroyView,
+    CommentListView,
+    FavoriteListView,
+    SubscriberListView,
+    translate_comment
 )
 
 app_name = 'apps.posts' 
@@ -25,9 +28,13 @@ urlpatterns = [
     path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
     path('comments/', CommentCreateView.as_view(), name='comment-create'),
     path('comments/<int:pk>/', CommentDestroyView.as_view(), name='comment-destroy'),
+    path('comments/', CommentListView.as_view(), name='comment-list'),
+    path('comments/<int:comment_id>/translate/', translate_comment, name='translate-comment'),
     path('likes/', LikeCreateDestroyView.as_view(), name='like-create-destroy'),
     path('favorites/', FavoriteCreateView.as_view(), name='favorite-create'),
+    path('favorites/list/', FavoriteListView.as_view(), name='favorite-list'),
     path('favorites/<int:pk>/', FavoriteDestroyView.as_view(), name='favorite-destroy'),
+    path('users/<int:user_id>/subscribers/', SubscriberListView.as_view(), name='subscriber-list'),
     path('subscriptions/', SubscriptionListView.as_view(), name='subscription-list'),
     path('subscriptions/<int:pk>/', SubscriptionDestroyView.as_view(), name='subscription-destroy'),
     path('login_view/', LikeCreateDestroyView.as_view(), name='login_view'),
