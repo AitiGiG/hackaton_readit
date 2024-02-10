@@ -3,6 +3,8 @@ from .models import CustomUser
 from django.contrib.auth import get_user_model
 from apps.product.models import Product, Busket, Favorite
 from apps.product.serializers import ProductSerializer, BusketSerializer, FavoriteSerializer
+from apps.posts.serializers import SubscriptionSerializer
+from apps.posts.models import Subscription
 
 
 User = get_user_model()
@@ -36,18 +38,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(read_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'biography', 'avatar', 'link', 'is_closed', 'is_staff']
+        fields = ['id', 'username', 'email', 'biography', 'avatar', 'link', 'is_closed', 'is_staff',  'last_online']
 
 class UserGetProductSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
     username = serializers.CharField(read_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'busket', 'favorite']
+        fields = ['id', 'username', 'email', 'busket', 'favorite', 'last_online', 'my_subscribers', 'im_subscribed']
     
     busket = serializers.SerializerMethodField(method_name='get_busket')
     favorite = serializers.SerializerMethodField(method_name='get_favorite')
-
+    my_subscribers = serializers.SerializerMethodField(method_name='get_my_subscribers')
+    im_subscribed = serializers.SerializerMethodField(method_name='get_im_subscribed')
+    
     def get_busket(self , instance):
         busket = Busket.objects.filter(owner=instance)
         serializer = BusketSerializer(busket, many=True)
@@ -57,12 +61,21 @@ class UserGetProductSerializer(serializers.ModelSerializer):
         serializer = FavoriteSerializer(favorite, many=True)
         return serializer.data
     
+    def get_my_subscribers(self, instance):
+        subscriptions = Subscription.objects.filter(subscriber=instance)
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        return serializer.data
+    def get_im_subscribed(self, instance):
+        subscriptions = Subscription.objects.filter(subscribed_to=instance)
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        return serializer.data
+    
 class UserVipGetSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
     username = serializers.CharField(read_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'is_staff', 'product']
+        fields = ['id', 'username', 'email', 'is_staff', 'product','last_online']
     
     product= serializers.SerializerMethodField(method_name='get_product')
 
