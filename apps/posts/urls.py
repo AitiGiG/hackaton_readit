@@ -16,6 +16,7 @@ from .views import (
     CommentListView,
     FavoriteListView,
     SubscriberListView,
+    FollowersListView,
     translate_comment
 )
 
@@ -37,6 +38,7 @@ urlpatterns = [
     path('users/<int:user_id>/subscribers/', SubscriberListView.as_view(), name='subscriber-list'),
     path('subscriptions/', SubscriptionListView.as_view(), name='subscription-list'),
     path('subscriptions/<int:pk>/', SubscriptionDestroyView.as_view(), name='subscription-destroy'),
+    path('myfollowers/', FollowersListView.as_view(), name='my-followers-list'),
     path('login_view/', LikeCreateDestroyView.as_view(), name='login_view'),
     path('cashe_view/', cache_page(60 * 15)(PostListView.as_view()), name='cache_view'),
 ]

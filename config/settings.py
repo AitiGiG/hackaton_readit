@@ -24,6 +24,7 @@ MY_APPS = [
     'apps.posts',
     'apps.product',
     'apps.category',
+    'apps.game_passport'
 ]
 DJANGO_APPS = [
     'jazzmin',
