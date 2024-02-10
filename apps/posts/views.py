@@ -10,7 +10,8 @@ from .serializers import (
     CommentSerializer,
     LikeSerializer,
     FavoriteSerializer,
-    SubscriptionSerializer
+    SubscriptionSerializer,
+    UserSerializer 
 )
 from .permissions import IsOwnerOrReadOnly
 from django.http import JsonResponse
@@ -20,7 +21,9 @@ from googletrans import Translator, LANGUAGES
 from django.http import JsonResponse
 from .models import Comment
 import logging  
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 logger = logging.getLogger('post')  
 
 class HashtagListView(generics.ListCreateAPIView):
@@ -140,6 +143,15 @@ class SubscriberListView(generics.ListAPIView):
 
         user_id = self.kwargs['user_id']
         return Subscription.objects.filter(subscribed_to__id=user_id)
+class FollowersListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        subscriptions = Subscription.objects.filter(subscribed_to=user)
+        subscriber_ids = subscriptions.values_list('subscriber', flat=True)
+        return User.objects.filter(id__in=subscriber_ids)
 class SubscriptionDestroyView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer

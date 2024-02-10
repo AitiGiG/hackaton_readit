@@ -20,17 +20,17 @@ schema_view = get_schema_view(
    public=True,
 )
 
+
 urlpatterns = [
     path('cache/', PostListView.as_view(), name='cache'),
-    path('api/admin/', admin.site.urls),
-    path('api/swagger/', schema_view.with_ui('swagger')),
-    path('api/account/', include('apps.account.urls')), 
-    path('api/', include('apps.posts.urls', namespace='apps.posts')),
-    path('api/', include('apps.product.urls')),
-    path('api/', include('apps.category.urls')),
+    path('admin/', admin.site.urls),  
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),  
+    path('account/', include('apps.account.urls')), 
+    path('posts/', include('apps.posts.urls', namespace='apps.posts')), 
+    path('product/', include('apps.product.urls')),
+    path('category/', include('apps.category.urls')),
+    path('gamepassport/', include('apps.game_passport.urls', namespace='apps.game_passport')),  
 ]
-
-
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
