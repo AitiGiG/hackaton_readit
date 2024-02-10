@@ -29,7 +29,7 @@ def send_confirmation_email(email, code):
    
 
 def send_password_reset_email(email, user_id):
-    password_reset_url = f'{URL}account/password_confirm/{user_id}'
+    password_reset_url = f'{URL}api/account/password_confirm/{user_id}'
     message = format_html(
         'Здравствуйте, чтобы восстановить пароль, перейдите по ссылке:'
         '<br>'

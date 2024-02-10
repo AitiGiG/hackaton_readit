@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-
+from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.utils.translation import gettext_lazy as _
+ 
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -44,7 +46,20 @@ class CustomUser(AbstractUser):
     last_username_change = models.DateTimeField(null=True, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+    last_online = models.DateTimeField(blank=True, null=True)
 
+    def is_online(self):
+        if self.last_online:
+            return (timezone.now() - self.last_online) < timezone.timedelta(minutes=15)
+        return False
+
+    def get_online_info(self):
+        if self.is_online():
+            return _('Online')
+        if self.last_online:
+            return _('Last visit {}').format(naturaltime(self.last_online))
+        return _('Unknown')
+    
     def create_activation_code(self):
         import uuid
         code = str(uuid.uuid4())

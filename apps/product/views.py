@@ -4,14 +4,10 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from .serializers import ProductSerializer
-from .models import Product
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Favorite
-from .models import Busket
-from .serializers import FavoriteSerializer
+from .models import *
 from .serializers import ReviewSerializer
-from .models import Review
 from .tasks import send_purchase_email, send_review_notification_email
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
@@ -35,7 +31,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'category__title', 'subcategory__title', 'description']
     filersets_fields = ['category']
     
-    
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [permissions.IsAdminUser()]
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsOwner()] 
+        return [permissions.IsAuthenticated()]  
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -58,9 +59,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
 
+class ActionsViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=True, methods=['POST'])
-    @permission_classes([permissions.IsAuthenticated])
     def toggle_favorite(self, request, pk=None):
         product = self.get_object()
     
@@ -76,9 +80,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             favorite = Favorite.objects.create(product=product, owner=request.user)
             favorite.save()
             return Response('Успешно добавлено', status=201)
-    
+
+
     @action (detail=True, methods=['POST', 'DELETE'])
-    @permission_classes([permissions.IsAuthenticated])
     def add_busket(self, request, pk=None):
         product = self.get_object()
         busket_exists = Busket.objects.filter(product=product, owner=request.user).exists()
@@ -93,8 +97,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             busket = Busket.objects.create(product=product, owner=request.user , quantity=request.data['quantity'] if request.data['quantity'] else 1)
             busket.save()
             return Response('Товар добавлен в корзину', status=201)
+
+
     @action(detail=True, methods=['POST'])
-    @permission_classes([permissions.IsAuthenticated])
     def buy_product(self, request, pk=None):
         product = self.get_object()
         busket = Busket.objects.get(product=product, owner=request.user)
@@ -110,8 +115,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         Busket.objects.filter(product=product, owner=request.user).delete()
         return Response('Товар куплен', status=201)
 
+
     @action(detail=True, methods=['POST', 'DELETE'])
-    @permission_classes([permissions.IsAuthenticated])
     def review(self, request, pk=None):
         product = self.get_object()
         if request.method == 'DELETE':
@@ -134,9 +139,4 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return Response('успешно добавлен', 201)
     
-    def get_permissions(self):
-        if self.request.method in ['POST']:
-            return [permissions.IsAdminUser()]
-        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsOwner()] 
-        return [permissions.IsAuthenticated()]  
+    

@@ -11,3 +11,5 @@ gunicorn
 django-filter
 django-cors-headers
 django-autoslug
+django-simple-captcha
+aiogram
