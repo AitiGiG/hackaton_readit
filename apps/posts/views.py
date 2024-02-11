@@ -82,7 +82,7 @@ class CommentCreateView(generics.CreateAPIView):
         post_id = self.request.data.get('post')
         post = get_object_or_404(Post.objects.prefetch_related('comments'), pk=post_id)
         serializer.save(commenter=self.request.user, post=post)
-        logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  # Логирование создания нового комментария
+        logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  
 
 class CommentDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Comment.objects.all()
@@ -100,7 +100,7 @@ class LikeCreateDestroyView(generics.CreateAPIView, generics.DestroyAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        logger.info('User {} liked a post'.format(self.request.user))  # Логирование нажатия на кнопку "Лайк"
+        logger.info('User {} liked a post'.format(self.request.user)) 
 class FavoriteListView(generics.ListAPIView):
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -116,7 +116,7 @@ class FavoriteCreateView(generics.CreateAPIView):
         post_id = self.request.data.get('post')
         post = get_object_or_404(Post, pk=post_id)
         serializer.save(user=self.request.user, post=post)
-        logger.info('User {} added post {} to favorites'.format(self.request.user, post))  # Логирование добавления поста в избранное
+        logger.info('User {} added post {} to favorites'.format(self.request.user, post))  
 
 class FavoriteDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Favorite.objects.all()
@@ -134,7 +134,7 @@ class SubscriptionListView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(subscriber=self.request.user)
-        logger.info('User {} subscribed to a new user'.format(self.request.user))  # Логирование подписки на нового пользователя
+        logger.info('User {} subscribed to a new user'.format(self.request.user))  
 class SubscriberListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer  
     permission_classes = [permissions.IsAuthenticated]  
@@ -171,10 +171,10 @@ class CustomLoginView(views.APIView):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            logger.info('User {} logged in successfully'.format(username))  # Логирование успешного входа
+            logger.info('User {} logged in successfully'.format(username))  
             return Response({'success': True, 'message': 'Login successful'})
         else:
-            logger.error('Invalid request method for login')  # Логирование недопустимого метода запроса
+            logger.error('Invalid request method for login')  
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
     
 def translate_comment(request, comment_id):
