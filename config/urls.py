@@ -6,9 +6,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.views import LoginView
 from apps.posts.views import PostListView
-
 from apps.posts.views import PostListView
-
 
 schema_view = get_schema_view(
    openapi.Info(

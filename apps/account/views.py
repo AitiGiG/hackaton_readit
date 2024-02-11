@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import CustomUser 
 from rest_framework import generics, viewsets
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 User = get_user_model()
 
 class RegistrationView(APIView):
@@ -140,6 +141,15 @@ class UserProfileUpdateView(APIView):
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
+
+class UserDetailView(generics.RetrieveAPIView):
+    def get(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        user.last_online = timezone.now()
+        serializer = UserProfileSerializer(user)
+        user.save()
+        return Response(serializer.data)
+
     
 class UsernameUpdateView(generics.UpdateAPIView):
     queryset = CustomUser.objects.all()
@@ -188,5 +198,18 @@ class UserVipGetViewSet(viewsets.ModelViewSet):
     permission_classes= [permissions.IsAuthenticated]
     serializer_class = UserVipGetSerializer
 
+class IsOnlineView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-   
+    def get(self, request):
+        user = request.user
+        
+        is_online = user.is_online()
+        online_info = user.get_online_info()
+        
+        # Обновляем время последнего онлайн-статуса пользователя
+        user.last_online = timezone.now()
+        user.save()
+
+        return Response({'is_online': is_online, 'online_info': online_info}, status=HTTPStatus.OK)
+        

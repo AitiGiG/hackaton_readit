@@ -3,12 +3,13 @@ from pathlib import Path
 from decouple import config
 import os
 import logging.config
+import sys
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
+sys.path.append(os.path.join(BASE_DIR, 'bot'))
 
 SECRET_KEY = 'django-insecure-t0n2&ihnzv&&d@k6@95h4r(f=1+ff7*bye(^4k5bu39uxc_y80'
 
@@ -42,7 +43,9 @@ LIBS_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'corsheaders',
-    'channels'
+    'channels',
+    'captcha'
+
 ]
 INSTALLED_APPS = MY_APPS + DJANGO_APPS + LIBS_APPS
 
@@ -230,6 +233,9 @@ logging.config.dictConfig(LOGGING)
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+RECAPTCHA_PUBLIC_KEY = '6Lc1n20pAAAAAFHKz6zo-kWvWTA0tSo7W6OiyCFQ'
+RECAPTCHA_PRIVATE_KEY = '6Lc1n20pAAAAAD4_8G38pPTQPgjLWeFHGyhF9uUW'
+
 JAZZMIN_SETTINGS = {
     "site_title": "Hackaton Projects",
     "welcome_sign": "Добро пожаловать!",
@@ -270,3 +276,4 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success",
     },
 }
+
