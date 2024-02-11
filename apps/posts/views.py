@@ -22,7 +22,7 @@ from django.http import JsonResponse
 from .models import Comment
 import logging  
 from django.contrib.auth import get_user_model
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 User = get_user_model()
 logger = logging.getLogger('post')  
 
@@ -37,7 +37,7 @@ class HashtagDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class PostListView(generics.ListCreateAPIView):
-    queryset = Post.objects.select_related('author').all()
+    queryset = Post.objects.select_related('creator').all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -62,16 +62,16 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrReadOnly]
 
 class CommentListView(generics.ListCreateAPIView):
-    queryset = Comment.objects.select_related('post').all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        post_id = self.request.query_params.get('post_id')
+   
+        post_id = self.kwargs.get('post_id')
         if post_id is not None:
-            queryset = queryset.filter(post__id=post_id)
-        return queryset
+            return Comment.objects.filter(post__id=post_id)
+        else:
+            return Comment.objects.none() 
 
 class CommentCreateView(generics.CreateAPIView):
     queryset = Comment.objects.all()
@@ -84,7 +84,7 @@ class CommentCreateView(generics.CreateAPIView):
         serializer.save(commenter=self.request.user, post=post)
         logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  # Логирование создания нового комментария
 
-class CommentDestroyView(generics.DestroyAPIView):
+class CommentDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -118,7 +118,7 @@ class FavoriteCreateView(generics.CreateAPIView):
         serializer.save(user=self.request.user, post=post)
         logger.info('User {} added post {} to favorites'.format(self.request.user, post))  # Логирование добавления поста в избранное
 
-class FavoriteDestroyView(generics.DestroyAPIView):
+class FavoriteDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -187,8 +187,9 @@ def translate_comment(request, comment_id):
 
         translator = Translator()
 
-        translated = translator.translate(comment.text, src='en', dest='ru')
+        translated = translator.translate(comment.content, src='en', dest='ru')
 
-        return JsonResponse({'original': comment.text, 'translated': translated.text})
+
+        return JsonResponse({'original': comment.content, 'translated': translated.text})
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)

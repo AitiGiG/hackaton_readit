@@ -4,7 +4,8 @@ from .models import Hashtag, Post, Comment, Like, Favorite, Subscription, User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        exclude = ['id', 'username']
+        ref_name = 'PostUserSerializer'
 
 class HashtagSerializer(serializers.ModelSerializer):
     class Meta:
