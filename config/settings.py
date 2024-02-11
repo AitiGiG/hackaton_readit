@@ -24,7 +24,8 @@ MY_APPS = [
     'apps.posts',
     'apps.product',
     'apps.category',
-    'apps.game_passport'
+    'apps.game_passport',
+    'apps.chat'
 ]
 DJANGO_APPS = [
     'jazzmin',
@@ -40,7 +41,8 @@ LIBS_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
-    'corsheaders'
+    'corsheaders',
+    'channels'
 ]
 INSTALLED_APPS = MY_APPS + DJANGO_APPS + LIBS_APPS
 
@@ -75,8 +77,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 DATABASES = {
     'default': {
@@ -249,7 +259,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
-    "theme": "slate",
+    "theme": "cyborg",
     "dark_mode_theme": None,
     "button_classes": {
         "primary": "btn-primary",

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <script type="text/javascript">
+        var ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/room_name/"); 
+        ws.onopen = function() {
+            console.log("Connected to WebSocket");
+        };
+        ws.onmessage = function(e) {
+            console.log("Received message: " + e.data);
+        };
+        ws.onclose = function(e) {
+            console.log("Disconnected");
+        };
+        ws.onerror = function(e) {
+            console.log("Error");
+        };
+    </script>
+</body>
+</html>

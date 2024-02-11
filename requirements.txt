@@ -13,3 +13,8 @@ django-cors-headers
 django-autoslug
 django-jazzmin
 googletrans==4.0.0-rc1
+Django>=3.2,<5.0  
+channels>=3.0.0
+channels-redis>=3.2.0
+asgiref==3.4.1
+daphne>=3.0.0  
