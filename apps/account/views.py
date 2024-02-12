@@ -91,8 +91,6 @@ class CustomResetPasswordView(APIView):
         send_password_reset_task.delay(email=email, user_id=user_id)
         return Response('Вам на почту отправили сообщение', status=200)
     
-
-class CustomPasswordConfirmView(APIView):
     def post(self, request, *args, **kwargs):
         new_password = request.data.get('new_password')
         password_confirm = request.data.get('password_confirm')
@@ -113,8 +111,7 @@ class CustomPasswordConfirmView(APIView):
             return Response(str(e), status=400)
         user.set_password(new_password)
         user.save()
-        return Response('Ваш пароль изменен!', status=201)
-        
+        return Response('Ваш пароль изменен!', status=201)    
 
 class VipView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -207,7 +204,6 @@ class IsOnlineView(APIView):
         is_online = user.is_online()
         online_info = user.get_online_info()
         
-        # Обновляем время последнего онлайн-статуса пользователя
         user.last_online = timezone.now()
         user.save()
 
