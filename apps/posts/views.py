@@ -22,7 +22,7 @@ from django.http import JsonResponse
 from .models import Comment
 import logging  
 from django.contrib.auth import get_user_model
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 User = get_user_model()
 logger = logging.getLogger('post')  
 
@@ -37,7 +37,7 @@ class HashtagDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class PostListView(generics.ListCreateAPIView):
-    queryset = Post.objects.select_related('author').all()
+    queryset = Post.objects.select_related('creator').all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -55,6 +55,13 @@ class PostListView(generics.ListCreateAPIView):
             queryset = queryset.filter(author__id=user_id)
         return queryset
 
+class PostCreateView(generics.CreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
@@ -62,16 +69,16 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrReadOnly]
 
 class CommentListView(generics.ListCreateAPIView):
-    queryset = Comment.objects.select_related('post').all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        post_id = self.request.query_params.get('post_id')
+   
+        post_id = self.kwargs.get('post_id')
         if post_id is not None:
-            queryset = queryset.filter(post__id=post_id)
-        return queryset
+            return Comment.objects.filter(post__id=post_id)
+        else:
+            return Comment.objects.none() 
 
 class CommentCreateView(generics.CreateAPIView):
     queryset = Comment.objects.all()
@@ -82,9 +89,9 @@ class CommentCreateView(generics.CreateAPIView):
         post_id = self.request.data.get('post')
         post = get_object_or_404(Post.objects.prefetch_related('comments'), pk=post_id)
         serializer.save(commenter=self.request.user, post=post)
-        logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  # Логирование создания нового комментария
+        logger.info('New comment created by user {} on post {}'.format(self.request.user, post))  
 
-class CommentDestroyView(generics.DestroyAPIView):
+class CommentDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -100,7 +107,7 @@ class LikeCreateDestroyView(generics.CreateAPIView, generics.DestroyAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        logger.info('User {} liked a post'.format(self.request.user))  # Логирование нажатия на кнопку "Лайк"
+        logger.info('User {} liked a post'.format(self.request.user)) 
 class FavoriteListView(generics.ListAPIView):
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -116,9 +123,9 @@ class FavoriteCreateView(generics.CreateAPIView):
         post_id = self.request.data.get('post')
         post = get_object_or_404(Post, pk=post_id)
         serializer.save(user=self.request.user, post=post)
-        logger.info('User {} added post {} to favorites'.format(self.request.user, post))  # Логирование добавления поста в избранное
+        logger.info('User {} added post {} to favorites'.format(self.request.user, post))  
 
-class FavoriteDestroyView(generics.DestroyAPIView):
+class FavoriteDestroyView(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -134,7 +141,7 @@ class SubscriptionListView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(subscriber=self.request.user)
-        logger.info('User {} subscribed to a new user'.format(self.request.user))  # Логирование подписки на нового пользователя
+        logger.info('User {} subscribed to a new user'.format(self.request.user))  
 class SubscriberListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer  
     permission_classes = [permissions.IsAuthenticated]  
@@ -171,10 +178,10 @@ class CustomLoginView(views.APIView):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            logger.info('User {} logged in successfully'.format(username))  # Логирование успешного входа
+            logger.info('User {} logged in successfully'.format(username))  
             return Response({'success': True, 'message': 'Login successful'})
         else:
-            logger.error('Invalid request method for login')  # Логирование недопустимого метода запроса
+            logger.error('Invalid request method for login')  
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
     
 def translate_comment(request, comment_id):
@@ -187,8 +194,18 @@ def translate_comment(request, comment_id):
 
         translator = Translator()
 
-        translated = translator.translate(comment.text, src='en', dest='ru')
+        translated = translator.translate(comment.content, src='en', dest='ru')
 
-        return JsonResponse({'original': comment.text, 'translated': translated.text})
+
+        return JsonResponse({'original': comment.content, 'translated': translated.text})
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+
+class RecommendedPostsListView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        favorite_users = Favorite.objects.filter(user=self.request.user).values_list('post__creator', flat=True).distinct()
+        return Post.objects.filter(creator__in=favorite_users).order_by('-date_created')

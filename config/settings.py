@@ -27,7 +27,8 @@ MY_APPS = [
     'apps.category',
     'apps.game_passport',
     # 'bot',
-    
+    'apps.chat'
+
 ]
 DJANGO_APPS = [
     'jazzmin',
@@ -44,7 +45,9 @@ LIBS_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'corsheaders',
+    'channels',
     'captcha'
+
 ]
 INSTALLED_APPS = MY_APPS + DJANGO_APPS + LIBS_APPS
 
@@ -79,8 +82,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
 
 DATABASES = {
     'default': {
@@ -173,7 +184,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5000',
+    'http://localhost:3000',
 ]
 
 CORS_ALLOW_METHODS = [
@@ -256,7 +267,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
-    "theme": "slate",
+    "theme": "cyborg",
     "dark_mode_theme": None,
     "button_classes": {
         "primary": "btn-primary",

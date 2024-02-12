@@ -1,4 +1,3 @@
-django
 djangorestframework
 psycopg2-binary
 python-decouple
@@ -15,4 +14,9 @@ django-simple-captcha
 aiogram
 django-jazzmin
 googletrans==4.0.0-rc1
+Django
+channels
+channels-redis
+asgiref
+daphne
 
