@@ -16,10 +16,9 @@ activate_kb = InlineKeyboardBuilder(
 main_menu_commands = [
         BotCommand(command='/help',
                    description='Справка по работе бота'),
-        BotCommand(command='/support',
-                   description='Поддержка'),
         BotCommand(command='/contacts',
                    description='Другие способы связи'),
-        BotCommand(command='/payments',
-                   description='Платежи')
+        BotCommand(command='/start',
+                   description='Начать')
     ]
+

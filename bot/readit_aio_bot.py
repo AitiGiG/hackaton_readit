@@ -3,10 +3,10 @@ import logging
 from decouple import config
 from aiogram import Bot, Dispatcher,types, F
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import CallbackQuery
 from checking import *
-from btn import reg_btn, main_menu_commands
+from btn import *
 from parsing import *
 
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +21,7 @@ async def set_main_menu(bot: Bot):
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
     await message.answer('Добро пожаловать! Выберите действие: ', reply_markup=reg_btn.as_markup())
+
 
 @dp.callback_query(F.data == 'register')
 async def process_buttons_press(callback: CallbackQuery, state: FSMContext):
@@ -68,8 +69,68 @@ async def get_password_confirm(message: types.Message, state: FSMContext):
 
 @dp.message(UserRegisterState.activation_code)
 async def activate(message: types.Message, state: FSMContext):
+    await state.update_data(activation_code=message.text)
     data = await state.get_data()
     res_activate = await UserRegister(data).activate_api()
+    if res_activate['error'] =='Пользователь с указанным кодом активации не найден.':
+        await message.answer('Введите корректный код активации: ')
+        await state.set_state(UserRegisterState.activation_code)
+    else:
+        await message.answer('Вы активировали аккаунт и вошли в аккаунт')
+        await state.clear()
+
+
+@dp.callback_query(F.data == 'login')
+async def process_buttons_press(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(UserLoginState.email)
+    await callback.message.answer('Введите email: ')
+
+@dp.message(UserLoginState.email)
+async def get_email(message: types.Message, state: FSMContext):
+    if is_valid_email(message.text):
+        await state.update_data(email=message.text)
+        await state.set_state(UserLoginState.password)
+        await message.answer('Введите пароль: ')
+    else:
+        await message.answer('Введите корректный email: ')
+
+@dp.message(UserLoginState.password)
+async def get_password(message: types.Message, state: FSMContext):
+    if is_valid_password(message.text):
+        await state.update_data(password=message.text)
+        data = await state.get_data()
+        res_login = await UserRegister(data).login_api()
+        print(res_login)
+        if type(res_login) == dict:
+            await message.answer('Вы успешно вошли в аккаунт)')
+        else:
+            await message.answer('Что то пошло не так')
+    else:
+        await message.answer('Пароль должен быть не меньше 8ми символов: ')
+
+@dp.callback_query(F.data == 'profile')
+async def process_buttons_press(callback: CallbackQuery):
+    await callback.message.answer('Профиль')
+
+
+
+@dp.message(Command(commands='help'))
+async def process_buttons_press(message: types.Message, bot: Bot):
+    await message.answer('Вы здесь можете искать посты по хэштэгам')    
+
+@dp.message(Command(commands='contacts'))
+async def process_buttons_press(message: types.Message, bot: Bot):
+    await message.answer('Наш телеграм: @readit_aio_bot \n Наш гитхаб: ```https://github.com/AitiGiG/hackaton_dordoi_place/blob/main/telegram_bot.py``` ')
+
+
+
+
+
+
+
+
+
+
 
 
 async def main():
