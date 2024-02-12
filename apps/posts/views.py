@@ -193,3 +193,12 @@ def translate_comment(request, comment_id):
         return JsonResponse({'original': comment.content, 'translated': translated.text})
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+
+class RecommendedPostsListView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        favorite_users = Favorite.objects.filter(user=self.request.user).values_list('post__creator', flat=True).distinct()
+        return Post.objects.filter(creator__in=favorite_users).order_by('-date_created')
