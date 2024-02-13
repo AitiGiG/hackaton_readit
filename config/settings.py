@@ -185,7 +185,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000','http://172.21.176.1:3000/','https://master.d2wsg9honuga4q.amplifyapp.com/',
+    'http://localhost:3000','http://172.21.176.1:3000','https://master.d2wsg9honuga4q.amplifyapp.com',
 ]
 
 CORS_ALLOW_METHODS = [
