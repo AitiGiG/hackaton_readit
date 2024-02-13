@@ -109,8 +109,11 @@ async def get_password(message: types.Message, state: FSMContext):
         await message.answer('Пароль должен быть не меньше 8ми символов: ')
 
 @dp.callback_query(F.data == 'profile')
-async def process_buttons_press(callback: CallbackQuery):
-    await callback.message.answer('Профиль')
+async def process_buttons_press(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    res = await UserRegister(data).get_user_profile()
+    print(res)
+    await callback.message.answer(f'Ваш профиль:\n username: {res["username"]} \n email: {res["email"]} \n bio: {res["biography"]} \n link: {res["link"]}')
 
 
 
