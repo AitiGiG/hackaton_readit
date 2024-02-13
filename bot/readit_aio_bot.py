@@ -72,12 +72,12 @@ async def activate(message: types.Message, state: FSMContext):
     await state.update_data(activation_code=message.text)
     data = await state.get_data()
     res_activate = await UserRegister(data).activate_api()
-    if res_activate['error'] =='Пользователь с указанным кодом активации не найден.':
-        await message.answer('Введите корректный код активации: ')
-        await state.set_state(UserRegisterState.activation_code)
-    else:
+    if res_activate['message'] =='Пользователь активирован':
         await message.answer('Вы активировали аккаунт и вошли в аккаунт')
         await state.clear()
+    else:
+        await message.answer('Введите корректный код активации: ')
+        await state.set_state(UserRegisterState.activation_code)
 
 
 @dp.callback_query(F.data == 'login')
@@ -124,12 +124,6 @@ async def process_buttons_press(message: types.Message, bot: Bot):
 @dp.message(Command(commands='contacts'))
 async def process_buttons_press(message: types.Message, bot: Bot):
     await message.answer('Наш телеграм: @readit_aio_bot \n Наш гитхаб: ```https://github.com/AitiGiG/hackaton_dordoi_place/blob/main/telegram_bot.py``` ')
-
-
-
-
-
-
 
 
 

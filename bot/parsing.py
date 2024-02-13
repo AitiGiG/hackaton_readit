@@ -11,7 +11,7 @@ class UserRegister:
 
     async def register_api(self):
         async with aiohttp.ClientSession() as session:
-            async with session.post(url = API + '/account/register/',json = self.data) as response:
+            async with session.post(url = API + 'account/register/',json = self.data) as response:
                 result = await response.json()
                 if "email" in result and result["email"] == ["user with this email already exists."]:
                     return f'Пользователь с таким email уже существует'
@@ -24,7 +24,7 @@ class UserRegister:
         # data.pop('username')
         # data.pop('password_confirm')
         async with aiohttp.ClientSession() as session:
-            async with session.post(url = API + '/account/login/',json = data) as response:
+            async with session.post(url = API + 'account/login/',json = data) as response:
                 result = await response.json()
                 if result.get('detail') == 'No active account found with the given credentials':
                     return False
@@ -32,7 +32,7 @@ class UserRegister:
                     return result
     async def activate_api(self):
         async with aiohttp.ClientSession() as session:
-            async with session.post(url = API + '/account/activate/',json = {'activation_code':self.data['activation_code']}) as response:
+            async with session.post(url = API + 'account/activate/',json = {'activation_code':self.data['activation_code']}) as response:
                 result = await response.json()
                 if type(result) == dict:
                     res = await self.login_api()
@@ -41,9 +41,8 @@ class UserRegister:
     
     async def get_user_profile(self):
         async with aiohttp.ClientSession(headers=self.headers) as session:
-            async with session.get(url = API + f'/account/user/{self.id}/') as response:
+            async with session.get(url = API + f'account/user/{self.id}/') as response:
                 result = await response.json()
-                raise Exception(result)
                 return result
             
             
