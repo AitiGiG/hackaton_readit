@@ -27,7 +27,8 @@ MY_APPS = [
     'apps.category',
     'apps.game_passport',
     # 'bot',
-    'apps.chat'
+    'apps.chat',
+    'apps.quest',
 
 ]
 DJANGO_APPS = [
@@ -184,7 +185,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
+    'http://localhost:3000','http://172.21.176.1:3000/','https://master.d2wsg9honuga4q.amplifyapp.com/',
 ]
 
 CORS_ALLOW_METHODS = [
