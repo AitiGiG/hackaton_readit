@@ -1,5 +1,5 @@
-from aiogram.types import InlineKeyboardButton, BotCommand
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardButton, BotCommand, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, KeyboardBuilder
 
 
 reg_btn = InlineKeyboardBuilder(
@@ -10,9 +10,7 @@ reg_btn = InlineKeyboardBuilder(
     ],
 )
 
-activate_kb = InlineKeyboardBuilder(
-    markup=[[InlineKeyboardButton(text = "Все,я активировал",callback_data='activate')]]
-)
+
 main_menu_commands = [
         BotCommand(command='/help',
                    description='Справка по работе бота'),

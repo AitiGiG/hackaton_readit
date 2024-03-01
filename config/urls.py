@@ -30,7 +30,8 @@ urlpatterns = [
     path('product/', include('apps.product.urls')),
     path('category/', include('apps.category.urls')),
     path('gamepassport/', include('apps.game_passport.urls', namespace='apps.game_passport')),  
-    path('chat/', include('apps.chat.urls', namespace='apps.chat'))
+    path('chat/', include('apps.chat.urls', namespace='apps.chat')), 
+    path('quest/', include('apps.quest.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
