@@ -10,7 +10,6 @@ gunicorn
 django-filter
 django-cors-headers
 django-autoslug
-django-simple-captcha
 aiogram
 django-jazzmin
 googletrans==4.0.0-rc1

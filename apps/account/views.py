@@ -90,13 +90,13 @@ class CustomResetPasswordView(APIView):
         user_id = user.id
         send_password_reset_task.delay(email=email, user_id=user_id)
         return Response('Вам на почту отправили сообщение', status=200)
-    
-    def post(self, request, *args, **kwargs):
+
+class PasswordChangeView(APIView):
+    def post(self, request, pk):
         new_password = request.data.get('new_password')
         password_confirm = request.data.get('password_confirm')
-        user_id = kwargs.get('uidb64') 
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(id=pk)
         except User.DoesNotExist:
             return Response('Пользователь не найден', status=404)
 
