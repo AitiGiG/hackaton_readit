@@ -47,7 +47,6 @@ LIBS_APPS = [
     'drf_yasg',
     'corsheaders',
     'channels',
-    'captcha'
 
 ]
 INSTALLED_APPS = MY_APPS + DJANGO_APPS + LIBS_APPS
@@ -233,9 +232,6 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-RECAPTCHA_PUBLIC_KEY = '6Lc1n20pAAAAAFHKz6zo-kWvWTA0tSo7W6OiyCFQ'
-RECAPTCHA_PRIVATE_KEY = '6Lc1n20pAAAAAD4_8G38pPTQPgjLWeFHGyhF9uUW'
 
 JAZZMIN_SETTINGS = {
     "site_title": "Hackaton Projects",
