@@ -26,6 +26,5 @@ urlpatterns = [
     path('change_closed/', ChangeClosedView.as_view(), name='change_closed'),
     path('', include(router.urls)),
     path('', include(router.urls)),
-    path('captcha/', include('captcha.urls')),
     path('is_online/', IsOnlineView.as_view(), name='is_online'),
 ]
